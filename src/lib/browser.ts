@@ -4,8 +4,9 @@ let browser: Browser;
 
 export const getBrowser = async (): Promise<Browser> => {
   if (!browser) {
-    browser = await chromium.launch();
+    browser = await chromium.launch({
+      headless: true,
+    });
   }
   return browser;
 };
-
