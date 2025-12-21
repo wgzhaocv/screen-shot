@@ -52,10 +52,10 @@ RUN mkdir -p /screenshots
 # 设置环境变量
 ENV NODE_ENV=production
 ENV SCREENSHOT_DIR=/screenshots
-ENV PORT=3000
+ENV PORT=7000
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 7000
 
 # 启动服务
 CMD ["node", "dist/index.js"]

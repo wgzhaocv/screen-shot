@@ -43,7 +43,7 @@ export const doScreenshot = async ({
     await fetch(callbackUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/octet-stream",
+        "Content-Type": "image/png",
         "X-Id": id,
         "X-Image-Id": imageId,
         "X-Status": "done",
