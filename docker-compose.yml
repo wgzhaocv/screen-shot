@@ -1,0 +1,14 @@
+services:
+  screenshot:
+    build: .
+    container_name: screenshot-service
+    ports:
+      - "3000:3000"
+    volumes:
+      - /Users/wenguang/Documents/server_uploads/screenshots:/screenshots
+    environment:
+      - NODE_ENV=production
+      - SCREENSHOT_DIR=/screenshots
+      - PORT=3000
+    restart: unless-stopped
+

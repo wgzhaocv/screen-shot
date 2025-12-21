@@ -18,6 +18,7 @@ export const doScreenshot = async ({
   callbackUrl,
 }: ScreenshotParams): Promise<void> => {
   const imagePath = path.join(SAVE_DIR, `${imageId}.png`);
+  let imageCreated = false;
 
   try {
     const browser = await getBrowser();
@@ -34,6 +35,7 @@ export const doScreenshot = async ({
 
     await page.setContent(html, { waitUntil: "networkidle" });
     await page.screenshot({ path: imagePath, type: "png" });
+    imageCreated = true;
     await page.close();
     await context.close();
 
@@ -49,8 +51,6 @@ export const doScreenshot = async ({
       body: file,
       duplex: "half",
     } as RequestInit);
-
-    await unlink(imagePath);
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
     await fetch(callbackUrl, {
@@ -62,7 +62,14 @@ export const doScreenshot = async ({
         "X-Status": "failed",
       },
       body: JSON.stringify({ error: errorMessage }),
+    }).catch(() => {
+      // 忽略回调失败的错误
     });
+  } finally {
+    if (imageCreated) {
+      await unlink(imagePath).catch(() => {
+        // 忽略删除失败的错误
+      });
+    }
   }
 };
-
