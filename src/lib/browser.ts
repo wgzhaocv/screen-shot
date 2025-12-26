@@ -1,12 +1,12 @@
 import { chromium, type Browser } from "playwright";
 
-let browser: Browser;
+let browserPromise: Promise<Browser> | null = null;
 
-export const getBrowser = async (): Promise<Browser> => {
-  if (!browser) {
-    browser = await chromium.launch({
+export const getBrowser = (): Promise<Browser> => {
+  if (!browserPromise) {
+    browserPromise = chromium.launch({
       headless: true,
     });
   }
-  return browser;
+  return browserPromise;
 };

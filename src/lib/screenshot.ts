@@ -1,8 +1,10 @@
 import { readFile, unlink } from "fs/promises";
 import path from "path";
+import type { BrowserContext, Page } from "playwright";
 import { SAVE_DIR, WIDTH, HEIGHT } from "./config.js";
 import { getBrowser } from "./browser.js";
 import { injectAntiFingerprint } from "./anti-fingerprint.js";
+import { getWaitTime } from "./wait-time.js";
 
 export type ScreenshotParams = {
   html: string;
@@ -19,25 +21,27 @@ export const doScreenshot = async ({
 }: ScreenshotParams): Promise<void> => {
   const imagePath = path.join(SAVE_DIR, `${imageId}.png`);
   let imageCreated = false;
+  let context: BrowserContext | null = null;
+  let page: Page | null = null;
 
   try {
     const browser = await getBrowser();
-    const context = await browser.newContext({
+    context = await browser.newContext({
       viewport: { width: WIDTH, height: HEIGHT },
       locale: "en-US",
       timezoneId: "America/New_York",
       geolocation: { latitude: 40.7128, longitude: -74.006 },
       permissions: ["geolocation"],
     });
-    const page = await context.newPage();
+    page = await context.newPage();
 
     await injectAntiFingerprint(page);
 
     await page.setContent(html, { waitUntil: "networkidle" });
+    await page.waitForLoadState("load");
+    await page.waitForTimeout(getWaitTime(html));
     await page.screenshot({ path: imagePath, type: "png" });
     imageCreated = true;
-    await page.close();
-    await context.close();
 
     const file = await readFile(imagePath);
     await fetch(callbackUrl, {
@@ -62,14 +66,12 @@ export const doScreenshot = async ({
         "X-Status": "failed",
       },
       body: JSON.stringify({ error: errorMessage }),
-    }).catch(() => {
-      // 忽略回调失败的错误
-    });
+    }).catch(() => {});
   } finally {
+    if (page) await page.close().catch(() => {});
+    if (context) await context.close().catch(() => {});
     if (imageCreated) {
-      await unlink(imagePath).catch(() => {
-        // 忽略删除失败的错误
-      });
+      await unlink(imagePath).catch(() => {});
     }
   }
 };

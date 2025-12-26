@@ -1,5 +1,5 @@
 # 使用 Node.js 官方镜像作为基础
-FROM node:20-slim
+FROM node:25-slim
 
 # 安装 Playwright 依赖
 RUN apt-get update && apt-get install -y \
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装 pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm
 
 # 设置工作目录
 WORKDIR /app
@@ -52,10 +52,11 @@ RUN mkdir -p /screenshots
 # 设置环境变量
 ENV NODE_ENV=production
 ENV SCREENSHOT_DIR=/screenshots
-ENV PORT=7000
+ENV PORT=4000
+ENV CONCURRENCY=10
 
 # 暴露端口
-EXPOSE 7000
+EXPOSE 4000
 
 # 启动服务
 CMD ["node", "dist/index.js"]
